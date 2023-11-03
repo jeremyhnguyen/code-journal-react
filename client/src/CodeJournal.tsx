@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { UnsavedEntry } from "./data";
-import { Entry } from "./data";
+// import { UnsavedEntry, updateEntry } from "./data";
+import { Entry, readEntries } from "./data";
 import { addEntry } from "./data";
+import {FaPencil} from 'react-icons/fa6'
 
 
 
@@ -11,19 +12,17 @@ export function CodeJournal (){
     setIsViewed(!isViewed)
   }
 
-  function handleSubmit (event:React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = getData();
-    data.entries.push()
-    setIsViewed(!isViewed);
-    console.log(data);
-  }
+  // function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  //   event.preventDefault();
+  //   handleView();
+  //   addEntry();
+  // }
   return (
     <>
     <div>
 { isViewed ? <NavBar onClick={handleView}/> : <NavBarEntries onClick={handleView}/>}
   </div>
-   {isViewed ? <EntryForm onSubmit={(event) => handleSubmit(event)}/> : <EntryList/> }
+   {isViewed ? <EntryForm handleView={handleView}/> : <EntryList/> }
 </>
   )
 }
@@ -70,13 +69,27 @@ function NavBarEntries({onClick}:NavProps) {
 }
 
 type EntryFormProps = {
-  onSubmit: (event:React.FormEvent<HTMLFormElement>) => void;
+  // onSubmit: (event:React.FormEvent<HTMLFormElement>) => void;
+  handleView:()=> void
 }
 
-function EntryForm({onSubmit}:EntryFormProps){
+function EntryForm({handleView}:EntryFormProps){
   const [title, setTitle] = useState<string>('')
-  const [photoURL, setphotoURL] = useState<string>('')
+  const [photoUrl, setPhotoUrl] = useState<string>('')
   const [notes, setNotes] = useState<string>('')
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const data = {
+      title,
+      photoUrl,
+      notes,
+    };
+    addEntry(data);
+     handleView();
+  }
+
   return (
 <>
 <div className="container" data-view="entry-form">
@@ -85,13 +98,13 @@ function EntryForm({onSubmit}:EntryFormProps){
             <h1 id="formH1">New Entry</h1>
           </div>
         </div>
-        <form onSubmit={onSubmit} id="entryForm">
+        <form onSubmit={handleSubmit} id="entryForm">
           <div className="row margin-bottom-1">
             <div className="column-half">
               <img
                 className="input-b-radius form-image"
                 id="formImage"
-                src={photoURL? photoURL : "/placeholder-image-square.jpg"}
+                src={photoUrl? photoUrl : "/placeholder-image-square.jpg"}
                 alt="image of entry image" />
             </div>
             <div className="column-half">
@@ -109,8 +122,8 @@ function EntryForm({onSubmit}:EntryFormProps){
               >
               <input
                 required
-                value={photoURL}
-                onChange={(event) => setphotoURL(event.target.value)}
+                value={photoUrl}
+                onChange={(event) => setPhotoUrl(event.target.value)}
                 className="input-b-color text-padding input-b-radius purple-outline input-height margin-bottom-2 d-block width-100"
                 type="text"
                 id="formURL"
@@ -154,42 +167,69 @@ function EntryForm({onSubmit}:EntryFormProps){
 }
 
 function EntryList(){
+const entries = readEntries();
   return (
     <>
-          <div className="container" data-view="entries">
+      <div className="container" data-view="entries">
         <div className="row">
           <div className="column-full d-flex justify-between align-center">
             <h1>Entries</h1>
             <h3>
-              <a id="formLink" className="white-text form-link" href="#">NEW</a>
+              <a id="formLink" className="white-text form-link" href="#">
+                NEW
+              </a>
             </h3>
           </div>
         </div>
         <div className="row">
           <div className="column-full">
-            <ul className="entry-ul" id="entryUl"></ul>
+            <ul className="entry-ul" id="entryUl">
+              {entries.map((entry) => (
+                <li key={entry.entryId}>
+                  <div className="row">
+                    <div className="column-half">
+                      <img
+                        className="input-b-radius form-image"
+                        src={entry.photoUrl}
+                      />
+                    </div>
+                    <div className="column-half">
+                      <div className="row">
+                        <div className="column-full d-flex justify-between">
+                          <h3>{entry.title}</h3>
+                          <FaPencil style={{marginTop:'1rem'}}/>
+                        </div>
+                      </div>
+                      <p>{entry.notes}</p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
-    <article>
-      <div
-        id="modalContainer"
-        className="modal-container d-flex justify-center align-center hidden">
-        <div className="modal row">
-          <div className="column-full d-flex justify-center">
-            <p>Are you sure you want to delete this entry?</p>
-          </div>
-          <div className="column-full d-flex justify-between">
-            <button className="modal-button" id="cancelButton">Cancel</button>
-            <button
-              className="modal-button red-background white-text"
-              id="confirmButton">
-              Confirm
-            </button>
+      <article>
+        <div
+          id="modalContainer"
+          className="modal-container d-flex justify-center align-center hidden">
+          <div className="modal row">
+            <div className="column-full d-flex justify-center">
+              <p>Are you sure you want to delete this entry?</p>
+            </div>
+            <div className="column-full d-flex justify-between">
+              <button className="modal-button" id="cancelButton">
+                Cancel
+              </button>
+              <button
+                className="modal-button red-background white-text"
+                id="confirmButton">
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
-   </>
-  )
+      </article>
+    </>
+  );
 }
