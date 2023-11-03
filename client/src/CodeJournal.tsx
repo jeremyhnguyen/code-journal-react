@@ -1,16 +1,29 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { UnsavedEntry } from "./data";
+import { Entry } from "./data";
+import { addEntry } from "./data";
+
+
 
 export function CodeJournal (){
   const [isViewed, setIsViewed] = useState<boolean>(true)
   function handleView(){
     setIsViewed(!isViewed)
   }
+
+  function handleSubmit (event:React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = getData();
+    data.entries.push()
+    setIsViewed(!isViewed);
+    console.log(data);
+  }
   return (
     <>
     <div>
 { isViewed ? <NavBar onClick={handleView}/> : <NavBarEntries onClick={handleView}/>}
   </div>
-   {isViewed ? <EntryForm/> : <EntryList/> }
+   {isViewed ? <EntryForm onSubmit={(event) => handleSubmit(event)}/> : <EntryList/> }
 </>
   )
 }
@@ -56,8 +69,14 @@ function NavBarEntries({onClick}:NavProps) {
   );
 }
 
+type EntryFormProps = {
+  onSubmit: (event:React.FormEvent<HTMLFormElement>) => void;
+}
 
-function EntryForm(){
+function EntryForm({onSubmit}:EntryFormProps){
+  const [title, setTitle] = useState<string>('')
+  const [photoURL, setphotoURL] = useState<string>('')
+  const [notes, setNotes] = useState<string>('')
   return (
 <>
 <div className="container" data-view="entry-form">
@@ -66,19 +85,21 @@ function EntryForm(){
             <h1 id="formH1">New Entry</h1>
           </div>
         </div>
-        <form id="entryForm">
+        <form onSubmit={onSubmit} id="entryForm">
           <div className="row margin-bottom-1">
             <div className="column-half">
               <img
                 className="input-b-radius form-image"
                 id="formImage"
-                src="/placeholder-image-square.jpg"
+                src={photoURL? photoURL : "/placeholder-image-square.jpg"}
                 alt="image of entry image" />
             </div>
             <div className="column-half">
               <label className="margin-bottom-1 d-block" >Title</label>
               <input
                 required
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
                 className="input-b-color text-padding input-b-radius purple-outline input-height margin-bottom-2 d-block width-100"
                 type="text"
                 id="formTitle"
@@ -88,6 +109,8 @@ function EntryForm(){
               >
               <input
                 required
+                value={photoURL}
+                onChange={(event) => setphotoURL(event.target.value)}
                 className="input-b-color text-padding input-b-radius purple-outline input-height margin-bottom-2 d-block width-100"
                 type="text"
                 id="formURL"
@@ -101,6 +124,8 @@ function EntryForm(){
               >
               <textarea
                 required
+                value={notes}
+                onChange ={(event) => setNotes(event.target.value)}
                 className="input-b-color text-padding input-b-radius purple-outline d-block width-100"
                 name="formNotes"
                 id="formNotes"
@@ -117,6 +142,7 @@ function EntryForm(){
                 Delete Entry
               </button>
               <button
+                type='submit'
                 className="input-b-radius text-padding purple-background white-text">
                 SAVE
               </button>
